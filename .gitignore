@@ -1,0 +1,71 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+# Ignorar archivos de variables de entorno
+.env
+
+# Ignore all files in the obj directory
+**/obj/
+
+# Ignore the obj directory and its contents
+Pandora/obj/
+
+# Ignore DLLs
+*.dll
+
+# Ignore AssemblyInfo files
+**/AssemblyInfo.cs
+
+# Ignore build directories
+bin/
+obj/
+
+# Ignore user-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore Rider specific files
+.idea/
+.idea_modules/
+
+# Ignore other common IDE files
+.vscode/
+
+# Ignore JSON files in the obj directory
+Pandora/obj/*.json
+
+# Ignore cache files in the obj directory
+Pandora/obj/*.cache
+
+# Ignore info files in the obj directory
+Pandora/obj/*.info
+
+# Ignore props files in the obj directory
+Pandora/obj/*.props
+
+# Ignore all files in Debug directory within obj
+Pandora/obj/Debug/
+
+# Optionally, ignore bin directory if it's present and causing issues
+Pandora/bin/
+
+# Ignore other generated files and directories
+Pandora/obj/**/*.cs
+Pandora/obj/**/*.cache
+
+Pandora/bin/Debug/net8.0/Pandora.dll
+Pandora/bin/Debug/net8.0/Pandora.exe
+Pandora/bin/Debug/net8.0/Pandora.pdb
+
+.idea/.idea.Pandora/.idea/workspace.xml
+
+workspace.xml
+Infrastructure/Migrations/
+
+logs.txt
