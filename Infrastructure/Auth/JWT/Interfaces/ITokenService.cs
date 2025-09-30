@@ -6,6 +6,5 @@ namespace Infrastructure.Auth.JWT.Interfaces;
 public interface ITokenService
 {
     string CreateAccessToken(UserEntity user);    // short lived (20m)
-    (string refreshTokenPlain, string refreshTokenHash) CreateRefreshToken();
     ClaimsPrincipal? ValidateAccessToken(string token, bool validateLifetime = true);
 }
