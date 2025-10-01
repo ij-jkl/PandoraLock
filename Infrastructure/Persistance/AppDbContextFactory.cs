@@ -1,25 +1,21 @@
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-using DotNetEnv;
-
-namespace Infrastructure.Persistance;
 
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        Env.Load();
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        EnvLoader.LoadRootEnv();
+
+        var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING");
+        Console.WriteLine($"[DEBUG] - MYSQL_CONNECTION_STRING being used : {connectionString}");
+
+        if (string.IsNullOrEmpty(connectionString))
+            throw new InvalidOperationException("MYSQL_CONNECTION_STRING is missing - Check .env path, or if .env is still there.");
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "";
-
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36)));
 
         return new AppDbContext(optionsBuilder.Options);
     }

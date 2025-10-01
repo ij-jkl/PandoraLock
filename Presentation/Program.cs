@@ -2,14 +2,19 @@ using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 
-Env.Load();
+EnvLoader.LoadRootEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("MYSQL_CONNECTION_STRING is not set in the environment variables (In Run Time).");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

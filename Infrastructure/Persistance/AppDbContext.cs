@@ -1,19 +1,19 @@
-using Application.Common.Interfaces;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistance;
 
-public class AppDbContext : DbContext, IAppDbContext
+public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-    public DbSet<UserEntity> Users => Set<UserEntity>();
-
-    public new Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => base.SaveChangesAsync(cancellationToken);
-
+    
+    public DbSet<UserEntity> Users { get; set; } = default!;
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }
+
+// To create the initial migration and update the database, run the following commands in the terminal, after we are going to run everything just by docker compose:
+// dotnet ef migrations add InitialMigration
+// dotnet ef database update 
