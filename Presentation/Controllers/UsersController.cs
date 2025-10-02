@@ -25,6 +25,15 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    [HttpPost("/login")]
+    public async Task<IActionResult> LoginUser([FromBody] LoginUserDto request)
+    {
+        var command = new LoginUserCommand(request.UsernameOrEmail, request.Password);
+        var response = await _mediator.Send(command);
+        
+        return StatusCode(response.Code, response);
+    }
+
     [HttpGet("/get_by_{id:int}")]
     public async Task<IActionResult> GetUserById(int id)
     {

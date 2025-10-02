@@ -8,6 +8,12 @@ public class CreateUserDto
     public string ConfirmPassword { get; set; } = default!;
 }
 
+public class LoginUserDto
+{
+    public string UsernameOrEmail { get; set; } = default!;
+    public string Password { get; set; } = default!;
+}
+
 public class UserDto
 {
     public int Id { get; set; }

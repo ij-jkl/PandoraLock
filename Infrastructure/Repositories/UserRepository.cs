@@ -31,12 +31,25 @@ public class UserRepository : IUserRepository
         return await _context.Users.FirstOrDefaultAsync(u => u.Username == normalizedUsername);
     }
 
+    public async Task<UserEntity?> GetByUsernameOrEmailAsync(string usernameOrEmail)
+    {
+        var normalized = usernameOrEmail.ToLowerInvariant();
+        return await _context.Users.FirstOrDefaultAsync(u => u.Username == normalized || u.Email == normalized);
+    }
+
     public async Task<UserEntity> CreateAsync(UserEntity user)
     {
         user.Username = user.Username.ToLowerInvariant();
         user.Email = user.Email.ToLowerInvariant();
         
         _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
+    }
+
+    public async Task<UserEntity> UpdateAsync(UserEntity user)
+    {
+        _context.Users.Update(user);
         await _context.SaveChangesAsync();
         return user;
     }
