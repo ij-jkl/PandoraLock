@@ -42,6 +42,7 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
                 };
             }
 
+            // Check if account is already locked - reject immediately
             if (user.IsLocked)
             {
                 return new ResponseObjectJsonDto<UserDto>
@@ -57,17 +58,31 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
             if (!isPasswordValid)
             {
                 user.FailedLoginAttempts++;
-                user.IsLocked = true;
+
+                if (user.FailedLoginAttempts >= 5)
+                {
+                    user.IsLocked = true;
+                    await _userRepository.UpdateAsync(user);
+
+                    return new ResponseObjectJsonDto<UserDto>
+                    {
+                        Message = "Invalid username/email or password. Account has been locked after 5 failed attempts",
+                        Code = 401,
+                        Response = null
+                    };
+                }
+
                 await _userRepository.UpdateAsync(user);
 
                 return new ResponseObjectJsonDto<UserDto>
                 {
-                    Message = "Invalid username/email or password. Account has been locked",
+                    Message = $"Invalid username/email or password. {5 - user.FailedLoginAttempts} attempts remaining",
                     Code = 401,
                     Response = null
                 };
             }
 
+            // If user login is successful, reset failed attempts and update last login time
             user.FailedLoginAttempts = 0;
             user.LastLoginAt = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
