@@ -41,11 +41,15 @@ public class UserRepository : IUserRepository
         return user;
     }
 
-    public async Task<bool> ExistsAsync(string email, string username)
+    public async Task<bool> ExistsByEmailAsync(string email)
     {
         var normalizedEmail = email.ToLowerInvariant();
+        return await _context.Users.AnyAsync(u => u.Email == normalizedEmail);
+    }
+
+    public async Task<bool> ExistsByUsernameAsync(string username)
+    {
         var normalizedUsername = username.ToLowerInvariant();
-        
-        return await _context.Users.AnyAsync(u => u.Email == normalizedEmail || u.Username == normalizedUsername);
+        return await _context.Users.AnyAsync(u => u.Username == normalizedUsername);
     }
 }

@@ -8,5 +8,6 @@ public interface IUserRepository
     Task<UserEntity?> GetByEmailAsync(string email);
     Task<UserEntity?> GetByUsernameAsync(string username);
     Task<UserEntity> CreateAsync(UserEntity user);
-    Task<bool> ExistsAsync(string email, string username);
+    Task<bool> ExistsByEmailAsync(string email);
+    Task<bool> ExistsByUsernameAsync(string username);
 }

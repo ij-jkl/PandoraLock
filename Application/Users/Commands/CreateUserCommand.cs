@@ -29,11 +29,24 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Respo
     {
         try
         {
-            if (await _userRepository.ExistsAsync(request.UserData.Email, request.UserData.Username))
+            var emailExists = await _userRepository.ExistsByEmailAsync(request.UserData.Email);
+            var usernameExists = await _userRepository.ExistsByUsernameAsync(request.UserData.Username);
+
+            if (emailExists)
             {
                 return new ResponseObjectJsonDto<UserDto>
                 {
-                    Message = "User with this email or username already exists",
+                    Message = "Email is already in use",
+                    Code = 409,
+                    Response = null!
+                };
+            }
+
+            if (usernameExists)
+            {
+                return new ResponseObjectJsonDto<UserDto>
+                {
+                    Message = "Username is already in use",
                     Code = 409,
                     Response = null!
                 };
