@@ -1,6 +1,7 @@
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
-using DotNetEnv;
+using Application;
+using Infrastructure;
 
 EnvLoader.LoadRootEnv();
 
@@ -16,7 +17,12 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure();
+
 builder.Services.AddControllers();
+builder.Services.AddAuthorization();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

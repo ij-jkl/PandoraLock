@@ -2,7 +2,7 @@ namespace Domain.Entities;
 
 public class UserEntity
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Username { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string PasswordHash { get; set; } = default!;

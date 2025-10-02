@@ -16,4 +16,5 @@ public class AppDbContext : DbContext
 
 // To create the initial migration and update the database, run the following commands in the terminal, after we are going to run everything just by docker compose:
 // dotnet ef migrations add InitialMigration
-// dotnet ef database update 
+// dotnet ef database update
+
