@@ -22,3 +22,9 @@ public class UserDto
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
 }
+
+public class LoginResponseDto
+{
+    public string Token { get; set; } = default!;
+    public UserDto User { get; set; } = default!;
+}

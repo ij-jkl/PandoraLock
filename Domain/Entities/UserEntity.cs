@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 namespace Domain.Entities;
 
 public class UserEntity
@@ -6,10 +8,11 @@ public class UserEntity
     public string Username { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string PasswordHash { get; set; } = default!;
+    public UserRole Role { get; set; } = UserRole.User;
     
     public int FailedLoginAttempts { get; set; } = 0;
     public bool IsLocked { get; set; } = false;
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
     public DateTime? LastLoginAt { get; set; }
 }

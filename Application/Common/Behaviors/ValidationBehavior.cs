@@ -30,20 +30,21 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
 
         if (failures.Any())
         {
-            var validationErrors = failures.Select(f => f.ErrorMessage).ToList();
+            var validationErrors = failures
+                .GroupBy(f => f.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(f => f.ErrorMessage).ToArray());
             
-            if (typeof(TResponse).IsGenericType && typeof(TResponse).GetGenericTypeDefinition() == typeof(ResponseObjectJsonDto<>))
+            if (typeof(TResponse) == typeof(ResponseObjectJsonDto))
             {
-                var responseType = typeof(TResponse).GetGenericArguments()[0];
-                var responseObjectType = typeof(ResponseObjectJsonDto<>).MakeGenericType(responseType);
+                var response = new ResponseObjectJsonDto
+                {
+                    Message = "Validation failed",
+                    Code = 400,
+                    Response = null,
+                    ValidationErrors = validationErrors
+                };
                 
-                var response = Activator.CreateInstance(responseObjectType);
-                responseObjectType.GetProperty("Message")?.SetValue(response, "Validation failed");
-                responseObjectType.GetProperty("Code")?.SetValue(response, 400);
-                responseObjectType.GetProperty("Response")?.SetValue(response, null);
-                responseObjectType.GetProperty("ValidationErrors")?.SetValue(response, validationErrors);
-                
-                return (TResponse)response;
+                return (TResponse)(object)response;
             }
         }
 

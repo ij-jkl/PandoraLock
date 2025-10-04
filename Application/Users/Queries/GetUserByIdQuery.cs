@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Users.Queries;
 
-public class GetUserByIdQuery : IRequest<ResponseObjectJsonDto<UserDto>>
+public class GetUserByIdQuery : IRequest<ResponseObjectJsonDto>
 {
     public int Id { get; set; }
 
@@ -15,7 +15,7 @@ public class GetUserByIdQuery : IRequest<ResponseObjectJsonDto<UserDto>>
     }
 }
 
-public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, ResponseObjectJsonDto<UserDto>>
+public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, ResponseObjectJsonDto>
 {
     private readonly IUserRepository _userRepository;
 
@@ -24,7 +24,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Respons
         _userRepository = userRepository;
     }
 
-    public async Task<ResponseObjectJsonDto<UserDto>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseObjectJsonDto> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -32,11 +32,11 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Respons
             
             if (user == null)
             {
-                return new ResponseObjectJsonDto<UserDto>
+                return new ResponseObjectJsonDto
                 {
                     Message = "User not found",
                     Code = 404,
-                    Response = null!
+                    Response = null
                 };
             }
 
@@ -49,7 +49,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Respons
                 LastLoginAt = user.LastLoginAt
             };
 
-            return new ResponseObjectJsonDto<UserDto>
+            return new ResponseObjectJsonDto
             {
                 Message = "User retrieved successfully",
                 Code = 200,
@@ -58,11 +58,11 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Respons
         }
         catch (Exception ex)
         {
-            return new ResponseObjectJsonDto<UserDto>
+            return new ResponseObjectJsonDto
             {
                 Code = 500,
-                Message = "Exception during user retrieval : " + ex.Message,
-                Response = null!
+                Message = "Exception during user retrieval: " + ex.Message,
+                Response = null
             };
         }
     }
