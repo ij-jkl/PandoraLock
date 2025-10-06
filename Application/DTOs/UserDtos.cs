@@ -28,3 +28,20 @@ public class LoginResponseDto
     public string Token { get; set; } = default!;
     public UserDto User { get; set; } = default!;
 }
+
+public class ForgotPasswordDto
+{
+    public string Email { get; set; } = default!;
+}
+
+public class ResetPasswordDto
+{
+    public string Token { get; set; } = default!;
+    public string NewPassword { get; set; } = default!;
+    public string ConfirmNewPassword { get; set; } = default!;
+}
+
+public class ForgotPasswordResponseDto
+{
+    public string ResetLink { get; set; } = default!;
+}

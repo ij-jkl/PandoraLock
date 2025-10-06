@@ -34,6 +34,24 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    [HttpPost("/forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+    {
+        var command = new ForgotPasswordCommand(request.Email);
+        var response = await _mediator.Send(command);
+
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPost("/reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+    {
+        var command = new ResetPasswordCommand(request.Token, request.NewPassword, request.ConfirmNewPassword);
+        var response = await _mediator.Send(command);
+
+        return StatusCode(response.Code, response);
+    }
+
     [HttpGet("/get_by_{id:int}")]
     public async Task<IActionResult> GetUserById(int id)
     {

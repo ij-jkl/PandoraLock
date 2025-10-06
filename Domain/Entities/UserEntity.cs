@@ -13,6 +13,9 @@ public class UserEntity
     public int FailedLoginAttempts { get; set; } = 0;
     public bool IsLocked { get; set; } = false;
     
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpiresAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
     public DateTime? LastLoginAt { get; set; }
 }

@@ -37,6 +37,11 @@ public class UserRepository : IUserRepository
         return await _context.Users.FirstOrDefaultAsync(u => u.Username == normalized || u.Email == normalized);
     }
 
+    public async Task<UserEntity?> GetByResetTokenAsync(string token)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token);
+    }
+
     public async Task<UserEntity> CreateAsync(UserEntity user)
     {
         user.Username = user.Username.ToLowerInvariant();
