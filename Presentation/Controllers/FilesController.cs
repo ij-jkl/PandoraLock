@@ -9,7 +9,6 @@ namespace Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class FilesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -20,6 +19,7 @@ public class FilesController : ControllerBase
     }
 
     [HttpPost("upload")]
+    [Authorize]
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
