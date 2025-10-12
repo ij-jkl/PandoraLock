@@ -5,16 +5,17 @@ using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-
 namespace Application.Files.Commands;
 
 public class UploadFileCommand : IRequest<ResponseObjectJsonDto>
 {
     public IFormFile File { get; set; } = default!;
+    public int UserId { get; set; }
 
-    public UploadFileCommand(IFormFile file)
+    public UploadFileCommand(IFormFile file, int userId)
     {
         File = file;
+        UserId = userId;
     }
 }
 
@@ -67,7 +68,7 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                 }
             }
 
-            var existingFile = await _fileRepository.GetByNameAsync(request.File.FileName);
+            var existingFile = await _fileRepository.GetByNameAndUserIdAsync(request.File.FileName, request.UserId);
             
             if (existingFile != null)
             {
@@ -75,7 +76,7 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
 
                 using (var stream = request.File.OpenReadStream())
                 {
-                    var storagePath = await _fileStorageService.SaveFileAsync(stream, request.File.FileName);
+                    var storagePath = await _fileStorageService.SaveFileAsync(stream, request.File.FileName, request.UserId);
                     
                     existingFile.StoragePath = storagePath;
                     existingFile.SizeInBytes = request.File.Length;
@@ -106,14 +107,15 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
             {
                 using (var stream = request.File.OpenReadStream())
                 {
-                    var storagePath = await _fileStorageService.SaveFileAsync(stream, request.File.FileName);
+                    var storagePath = await _fileStorageService.SaveFileAsync(stream, request.File.FileName, request.UserId);
                     
                     var fileEntity = new FileEntity
                     {
                         Name = request.File.FileName,
                         StoragePath = storagePath,
                         SizeInBytes = request.File.Length,
-                        ContentType = request.File.ContentType
+                        ContentType = request.File.ContentType,
+                        UserId = request.UserId
                     };
 
                     var createdFile = await _fileRepository.CreateAsync(fileEntity);

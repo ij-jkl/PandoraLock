@@ -7,6 +7,12 @@ namespace Application.Files.Queries;
 
 public class GetAllFilesQuery : IRequest<ResponseObjectJsonDto>
 {
+    public int UserId { get; set; }
+
+    public GetAllFilesQuery(int userId)
+    {
+        UserId = userId;
+    }
 }
 
 public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, ResponseObjectJsonDto>
@@ -22,7 +28,7 @@ public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, Respons
     {
         try
         {
-            var files = await _fileRepository.GetAllAsync();
+            var files = await _fileRepository.GetAllByUserIdAsync(request.UserId);
 
             var fileDtos = files.Select(f => new FileDto
             {

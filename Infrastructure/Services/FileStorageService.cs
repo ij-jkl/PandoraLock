@@ -16,9 +16,16 @@ public class FileStorageService : IFileStorageService
         }
     }
 
-    public async Task<string> SaveFileAsync(Stream fileStream, string fileName)
+    public async Task<string> SaveFileAsync(Stream fileStream, string fileName, int userId)
     {
-        var filePath = Path.Combine(_storagePath, fileName);
+        var userDirectory = Path.Combine(_storagePath, userId.ToString());
+        
+        if (!Directory.Exists(userDirectory))
+        {
+            Directory.CreateDirectory(userDirectory);
+        }
+        
+        var filePath = Path.Combine(userDirectory, fileName);
         
         using (var outputStream = new FileStream(filePath, FileMode.Create))
         {

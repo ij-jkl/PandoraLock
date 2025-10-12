@@ -1,12 +1,15 @@
 using Application.Files.Commands;
 using Application.Files.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class FilesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -16,21 +19,31 @@ public class FilesController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpPost("upload_pdf")]
+    [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
-        var command = new UploadFileCommand(file);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { Message = "User not authenticated", Code = 401 });
+        }
 
+        var command = new UploadFileCommand(file, userId);
         var response = await _mediator.Send(command);
         
         return StatusCode(response.Code, response);
     }
 
-    [HttpGet("get_all_files")]
+    [HttpGet]
     public async Task<IActionResult> GetAllFiles()
     {
-        var query = new GetAllFilesQuery();
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { Message = "User not authenticated", Code = 401 });
+        }
 
+        var query = new GetAllFilesQuery(userId);
         var response = await _mediator.Send(query);
         
         return StatusCode(response.Code, response);

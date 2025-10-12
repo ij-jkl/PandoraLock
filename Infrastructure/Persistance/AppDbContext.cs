@@ -12,6 +12,11 @@ public class AppDbContext : DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<FileEntity>()
+            .HasOne(f => f.User)
+            .WithMany(u => u.Files)
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

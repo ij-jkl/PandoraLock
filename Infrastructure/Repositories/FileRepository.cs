@@ -32,13 +32,13 @@ public class FileRepository : IFileRepository
         return file;
     }
 
-    public async Task<FileEntity?> GetByNameAsync(string name)
+    public async Task<FileEntity?> GetByNameAndUserIdAsync(string name, int userId)
     {
-        return await _context.Files.FirstOrDefaultAsync(f => f.Name == name);
+        return await _context.Files.FirstOrDefaultAsync(f => f.Name == name && f.UserId == userId);
     }
 
-    public async Task<List<FileEntity>> GetAllAsync()
+    public async Task<List<FileEntity>> GetAllByUserIdAsync(int userId)
     {
-        return await _context.Files.ToListAsync();
+        return await _context.Files.Where(f => f.UserId == userId).ToListAsync();
     }
 }

@@ -18,4 +18,6 @@ public class UserEntity
 
     public DateTime CreatedAt { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
     public DateTime? LastLoginAt { get; set; }
+    
+    public ICollection<FileEntity> Files { get; set; } = new List<FileEntity>();
 }

@@ -6,6 +6,6 @@ public interface IFileRepository
 {
     Task<FileEntity> CreateAsync(FileEntity file);
     Task<FileEntity> UpdateAsync(FileEntity file);
-    Task<FileEntity?> GetByNameAsync(string name);
-    Task<List<FileEntity>> GetAllAsync();
+    Task<FileEntity?> GetByNameAndUserIdAsync(string name, int userId);
+    Task<List<FileEntity>> GetAllByUserIdAsync(int userId);
 }
