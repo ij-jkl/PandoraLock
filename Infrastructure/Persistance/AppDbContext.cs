@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     
     public DbSet<UserEntity> Users { get; set; } = default!;
+    public DbSet<FileEntity> Files { get; set; } = default!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
