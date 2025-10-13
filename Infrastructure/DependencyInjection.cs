@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFileRepository, FileRepository>();
         services.AddSingleton<ITokenService, Auth.JWT.TokenService>();
+        services.AddSingleton<IFileTypeValidator, FileTypeValidator>();
         
         var fileStoragePath = configuration["FileStorage:Path"] ?? Path.Combine(Directory.GetCurrentDirectory(), "FileStorage");
         services.AddSingleton<IFileStorageService>(new FileStorageService(fileStoragePath));

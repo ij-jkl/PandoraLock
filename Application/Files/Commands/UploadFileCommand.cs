@@ -23,7 +23,6 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
 {
     private readonly IFileRepository _fileRepository;
     private readonly IFileStorageService _fileStorageService;
-    private const long MaxFileSizeInBytes = 10 * 1024 * 1024;
 
     public UploadFileCommandHandler(IFileRepository fileRepository, IFileStorageService fileStorageService)
     {
@@ -35,39 +34,6 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
     {
         try
         {
-            if (request.File == null || request.File.Length == 0)
-            {
-                return new ResponseObjectJsonDto
-                {
-                    Message = "File is required",
-                    Code = 400,
-                    Response = null
-                };
-            }
-
-            if (request.File.Length > MaxFileSizeInBytes)
-            {
-                return new ResponseObjectJsonDto
-                {
-                    Message = "File size exceeds the maximum allowed size of 10MB",
-                    Code = 400,
-                    Response = null
-                };
-            }
-
-            using (var stream = request.File.OpenReadStream())
-            {
-                if (!_fileStorageService.IsPdfFile(stream))
-                {
-                    return new ResponseObjectJsonDto
-                    {
-                        Message = "Only valid PDF files are allowed",
-                        Code = 400,
-                        Response = null
-                    };
-                }
-            }
-
             var existingFile = await _fileRepository.GetByNameAndUserIdAsync(request.File.FileName, request.UserId);
             
             if (existingFile != null)
