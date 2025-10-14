@@ -5,32 +5,26 @@ using MediatR;
 
 namespace Application.Files.Queries;
 
-public class GetAllFilesQuery : IRequest<ResponseObjectJsonDto>
+public class GetPublicFilesQuery : IRequest<ResponseObjectJsonDto>
 {
-    public int UserId { get; set; }
-
-    public GetAllFilesQuery(int userId)
-    {
-        UserId = userId;
-    }
 }
 
-public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, ResponseObjectJsonDto>
+public class GetPublicFilesQueryHandler : IRequestHandler<GetPublicFilesQuery, ResponseObjectJsonDto>
 {
     private readonly IFileRepository _fileRepository;
 
-    public GetAllFilesQueryHandler(IFileRepository fileRepository)
+    public GetPublicFilesQueryHandler(IFileRepository fileRepository)
     {
         _fileRepository = fileRepository;
     }
 
-    public async Task<ResponseObjectJsonDto> Handle(GetAllFilesQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseObjectJsonDto> Handle(GetPublicFilesQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var files = await _fileRepository.GetAccessibleFilesAsync(request.UserId);
+            var publicFiles = await _fileRepository.GetAllPublicFilesAsync();
 
-            var fileDtos = files.Select(f => new FileDto
+            var fileDtos = publicFiles.Select(f => new FileDto
             {
                 Id = f.Id,
                 Name = f.Name,
@@ -43,7 +37,7 @@ public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, Respons
 
             return new ResponseObjectJsonDto
             {
-                Message = "List of files : ",
+                Message = "List of public files",
                 Code = 200,
                 Response = fileDtos
             };
@@ -52,7 +46,7 @@ public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, Respons
         {
             return new ResponseObjectJsonDto
             {
-                Message = "An error occurred while retrieving files",
+                Message = "An error occurred while retrieving public files",
                 Code = 500,
                 Response = ex.Message
             };

@@ -20,4 +20,5 @@ public class UserEntity
     public DateTime? LastLoginAt { get; set; }
     
     public ICollection<FileEntity> Files { get; set; } = new List<FileEntity>();
+    public ICollection<SharedFileAccessEntity> SharedFilesAccess { get; set; } = new List<SharedFileAccessEntity>();
 }

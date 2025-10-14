@@ -9,6 +9,8 @@ public class FileEntity
     public string ContentType { get; set; } = default!;
     public int UserId { get; set; }
     public UserEntity User { get; set; } = default!;
+    public bool IsPublic { get; set; } = false;
     public DateTime UploadedAt { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
     public DateTime? UpdatedAt { get; set; }
+    public ICollection<SharedFileAccessEntity> SharedAccess { get; set; } = new List<SharedFileAccessEntity>();
 }

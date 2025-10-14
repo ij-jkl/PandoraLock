@@ -11,11 +11,13 @@ public class UploadFileCommand : IRequest<ResponseObjectJsonDto>
 {
     public IFormFile File { get; set; } = default!;
     public int UserId { get; set; }
+    public bool IsPublic { get; set; } = false;
 
-    public UploadFileCommand(IFormFile file, int userId)
+    public UploadFileCommand(IFormFile file, int userId, bool isPublic = false)
     {
         File = file;
         UserId = userId;
+        IsPublic = isPublic;
     }
 }
 
@@ -47,6 +49,7 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                     existingFile.StoragePath = storagePath;
                     existingFile.SizeInBytes = request.File.Length;
                     existingFile.ContentType = request.File.ContentType;
+                    existingFile.IsPublic = request.IsPublic;
                     existingFile.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
 
                     var updatedFile = await _fileRepository.UpdateAsync(existingFile);
@@ -57,6 +60,7 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                         Name = updatedFile.Name,
                         SizeInBytes = updatedFile.SizeInBytes,
                         ContentType = updatedFile.ContentType,
+                        IsPublic = updatedFile.IsPublic,
                         UploadedAt = updatedFile.UploadedAt,
                         UpdatedAt = updatedFile.UpdatedAt
                     };
@@ -81,7 +85,8 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                         StoragePath = storagePath,
                         SizeInBytes = request.File.Length,
                         ContentType = request.File.ContentType,
-                        UserId = request.UserId
+                        UserId = request.UserId,
+                        IsPublic = request.IsPublic
                     };
 
                     var createdFile = await _fileRepository.CreateAsync(fileEntity);
@@ -92,6 +97,7 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                         Name = createdFile.Name,
                         SizeInBytes = createdFile.SizeInBytes,
                         ContentType = createdFile.ContentType,
+                        IsPublic = createdFile.IsPublic,
                         UploadedAt = createdFile.UploadedAt,
                         UpdatedAt = createdFile.UpdatedAt
                     };

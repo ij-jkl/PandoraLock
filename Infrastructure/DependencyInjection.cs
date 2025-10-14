@@ -12,6 +12,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IFileRepository, FileRepository>();
+        services.AddScoped<ISharedFileAccessRepository, SharedFileAccessRepository>();
         services.AddSingleton<ITokenService, Auth.JWT.TokenService>();
         services.AddSingleton<IFileTypeValidator, FileTypeValidator>();
         services.AddSingleton<IFileSafetyAnalyzer, FileSafetyAnalyzer>();

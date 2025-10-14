@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
     
     public DbSet<UserEntity> Users { get; set; } = default!;
     public DbSet<FileEntity> Files { get; set; } = default!;
+    public DbSet<SharedFileAccessEntity> SharedFileAccess { get; set; } = default!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,6 +18,22 @@ public class AppDbContext : DbContext
             .WithMany(u => u.Files)
             .HasForeignKey(f => f.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SharedFileAccessEntity>()
+            .HasOne(s => s.File)
+            .WithMany(f => f.SharedAccess)
+            .HasForeignKey(s => s.FileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SharedFileAccessEntity>()
+            .HasOne(s => s.SharedWithUser)
+            .WithMany(u => u.SharedFilesAccess)
+            .HasForeignKey(s => s.SharedWithUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<SharedFileAccessEntity>()
+            .HasIndex(s => new { s.FileId, s.SharedWithUserId })
+            .IsUnique();
     }
 }
 

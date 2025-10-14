@@ -20,7 +20,7 @@ public class FilesController : ControllerBase
 
     [HttpPost("upload")]
     [Authorize]
-    public async Task<IActionResult> UploadFile(IFormFile file)
+    public async Task<IActionResult> UploadFile(IFormFile file, [FromForm] bool isPublic = false)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
@@ -28,7 +28,24 @@ public class FilesController : ControllerBase
             return Unauthorized(new { Message = "User not authenticated", Code = 401 });
         }
 
-        var command = new UploadFileCommand(file, userId);
+        var command = new UploadFileCommand(file, userId, isPublic);
+        var response = await _mediator.Send(command);
+        
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpPost("{fileId}/share")]
+    [Authorize]
+    public async Task<IActionResult> ShareFile(int fileId, [FromBody] ShareFileRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { Message = "User not authenticated", Code = 401 });
+        }
+
+        var command = new ShareFileCommand(fileId, request.SharedWithEmail, userId);
         var response = await _mediator.Send(command);
         
         return StatusCode(response.Code, response);
@@ -48,4 +65,34 @@ public class FilesController : ControllerBase
         
         return StatusCode(response.Code, response);
     }
+
+    [HttpGet("public")]
+    public async Task<IActionResult> GetPublicFiles()
+    {
+        var query = new GetPublicFilesQuery();
+        var response = await _mediator.Send(query);
+        
+        return StatusCode(response.Code, response);
+    }
+
+    [HttpGet("shared-with-me")]
+    [Authorize]
+    public async Task<IActionResult> GetSharedWithMeFiles()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { Message = "User not authenticated", Code = 401 });
+        }
+
+        var query = new GetSharedWithMeFilesQuery(userId);
+        var response = await _mediator.Send(query);
+        
+        return StatusCode(response.Code, response);
+    }
+}
+
+public class ShareFileRequest
+{
+    public string SharedWithEmail { get; set; } = default!;
 }

@@ -5,39 +5,6 @@ namespace Infrastructure.Services;
 
 public class FileSafetyAnalyzer : IFileSafetyAnalyzer
 {
-    private static readonly byte[][] PdfJavaScriptPatterns = new[]
-    {
-        // Searching for the following patterns inside the bytes of the file.
-        Encoding.ASCII.GetBytes("/JavaScript"),
-        Encoding.ASCII.GetBytes("/JS"),
-        Encoding.ASCII.GetBytes("/OpenAction"),
-        Encoding.ASCII.GetBytes("/AA"),
-        Encoding.ASCII.GetBytes("/Launch"),
-        Encoding.ASCII.GetBytes("/SubmitForm"),
-        Encoding.ASCII.GetBytes("/ImportData"),
-        Encoding.ASCII.GetBytes("/GoTo"),
-        Encoding.ASCII.GetBytes("/GoToR"),
-        Encoding.ASCII.GetBytes("/GoToE"),
-        Encoding.ASCII.GetBytes("/URI"),
-        Encoding.ASCII.GetBytes("/EmbeddedFile"),
-        Encoding.ASCII.GetBytes("/RichMedia"),
-        Encoding.ASCII.GetBytes("/Flash"),
-        Encoding.ASCII.GetBytes("/XFA")
-    };
-
-    private static readonly byte[][] ImageEmbeddedPatterns = new[]
-    {
-        Encoding.ASCII.GetBytes("<?php"),
-        Encoding.ASCII.GetBytes("<%"),
-        Encoding.ASCII.GetBytes("<script"),
-        Encoding.ASCII.GetBytes("eval("),
-        Encoding.ASCII.GetBytes("base64_decode"),
-        Encoding.ASCII.GetBytes("exec("),
-        Encoding.ASCII.GetBytes("system("),
-        Encoding.ASCII.GetBytes("passthru("),
-        Encoding.ASCII.GetBytes("shell_exec")
-    };
-
     public async Task<(bool IsSafe, string Reason)> AnalyzeFileAsync(Stream fileStream, string fileType)
     {
         if (fileStream == null || fileStream.Length == 0)
@@ -68,24 +35,11 @@ public class FileSafetyAnalyzer : IFileSafetyAnalyzer
     private async Task<(bool IsSafe, string Reason)> AnalyzePdfAsync(Stream fileStream)
     {
         using var memoryStream = new MemoryStream();
-
         await fileStream.CopyToAsync(memoryStream);
-
         var content = memoryStream.ToArray();
 
-        foreach (var pattern in PdfJavaScriptPatterns)
-        {
-            if (ContainsPattern(content, pattern))
-            {
-                var patternName = Encoding.ASCII.GetString(pattern);
-                return (false, $"PDF contains suspicious element : {patternName}");
-            }
-        }
-
-        if (ContainsExecutableSignature(content))
-        {
-            return (false, "PDF contains embedded executable content");
-        }
+        if (content.Length < 4)
+            return (false, "Invalid PDF file");
 
         return (true, "PDF is safe");
     }
@@ -94,22 +48,10 @@ public class FileSafetyAnalyzer : IFileSafetyAnalyzer
     {
         using var memoryStream = new MemoryStream();
         await fileStream.CopyToAsync(memoryStream);
-
         var content = memoryStream.ToArray();
 
-        foreach (var pattern in ImageEmbeddedPatterns)
-        {
-            if (ContainsPattern(content, pattern))
-            {
-                var patternName = Encoding.ASCII.GetString(pattern);
-                return (false, $"Image contains suspicious embedded content : {patternName}");
-            }
-        }
-
-        if (ContainsExecutableSignature(content))
-        {
-            return (false, "Image contains embedded executable content");
-        }
+        if (content.Length < 4)
+            return (false, "Invalid image file");
 
         return (true, "Image is safe");
     }

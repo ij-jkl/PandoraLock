@@ -5,32 +5,32 @@ using MediatR;
 
 namespace Application.Files.Queries;
 
-public class GetAllFilesQuery : IRequest<ResponseObjectJsonDto>
+public class GetSharedWithMeFilesQuery : IRequest<ResponseObjectJsonDto>
 {
     public int UserId { get; set; }
 
-    public GetAllFilesQuery(int userId)
+    public GetSharedWithMeFilesQuery(int userId)
     {
         UserId = userId;
     }
 }
 
-public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, ResponseObjectJsonDto>
+public class GetSharedWithMeFilesQueryHandler : IRequestHandler<GetSharedWithMeFilesQuery, ResponseObjectJsonDto>
 {
     private readonly IFileRepository _fileRepository;
 
-    public GetAllFilesQueryHandler(IFileRepository fileRepository)
+    public GetSharedWithMeFilesQueryHandler(IFileRepository fileRepository)
     {
         _fileRepository = fileRepository;
     }
 
-    public async Task<ResponseObjectJsonDto> Handle(GetAllFilesQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseObjectJsonDto> Handle(GetSharedWithMeFilesQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            var files = await _fileRepository.GetAccessibleFilesAsync(request.UserId);
+            var sharedFiles = await _fileRepository.GetFilesSharedWithUserAsync(request.UserId);
 
-            var fileDtos = files.Select(f => new FileDto
+            var fileDtos = sharedFiles.Select(f => new FileDto
             {
                 Id = f.Id,
                 Name = f.Name,
@@ -43,7 +43,7 @@ public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, Respons
 
             return new ResponseObjectJsonDto
             {
-                Message = "List of files : ",
+                Message = "List of files shared with you",
                 Code = 200,
                 Response = fileDtos
             };
@@ -52,7 +52,7 @@ public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, Respons
         {
             return new ResponseObjectJsonDto
             {
-                Message = "An error occurred while retrieving files",
+                Message = "An error occurred while retrieving shared files",
                 Code = 500,
                 Response = ex.Message
             };
