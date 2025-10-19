@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e5a9e 0%, #2b7fd6 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .logo-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+        .content {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .content h1 {
+            color: #1e5a9e;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .content p {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #555555;
+        }
+        .content ul, .content ol {
+            padding-left: 20px;
+        }
+        .content li {
+            margin-bottom: 8px;
+        }
+        .highlight-box {
+            background-color: #f0f7ff;
+            border-left: 4px solid #2b7fd6;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #1e5a9e 0%, #2b7fd6 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(43, 127, 214, 0.3);
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            box-shadow: 0 6px 16px rgba(43, 127, 214, 0.4);
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f5f7fa;
+            padding: 30px;
+            text-align: center;
+            color: #888888;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #2b7fd6;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .content h1 {
+                font-size: 22px;
+            }
+            .button {
+                padding: 12px 24px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class='email-container'>
+        <div class='header'>
+            <div class='logo'>🔐 PandoraLock</div>
+            <div class='logo-subtitle'>Secure File Management</div>
+        </div>
+        <div class='content'>
+            {{CONTENT}}
+        </div>
+        <div class='footer'>
+            <p><strong>PandoraLock</strong> - Your Data, Secured</p>
+            <p>Questions or need assistance? Contact us at <a href='mailto:pandora.locks.files@gmail.com'>pandora.locks.files@gmail.com</a></p>
+            <p style='font-size: 12px; color: #aaaaaa; margin-top: 20px;'>
+                © 2025 PandoraLock. All rights reserved.<br/>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

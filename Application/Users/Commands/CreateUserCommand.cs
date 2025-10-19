@@ -19,10 +19,12 @@ public class CreateUserCommand : IRequest<ResponseObjectJsonDto>
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ResponseObjectJsonDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IEmailService _emailService;
 
-    public CreateUserCommandHandler(IUserRepository userRepository)
+    public CreateUserCommandHandler(IUserRepository userRepository, IEmailService emailService)
     {
         _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -63,6 +65,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Respo
             };
 
             var createdUser = await _userRepository.CreateAsync(user);
+
+            await _emailService.SendUserCreatedEmailAsync(createdUser.Email, createdUser.Username);
 
             var userDto = new UserDto
             {

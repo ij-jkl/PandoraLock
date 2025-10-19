@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, Auth.JWT.TokenService>();
         services.AddSingleton<IFileTypeValidator, FileTypeValidator>();
         services.AddSingleton<IFileSafetyAnalyzer, FileSafetyAnalyzer>();
+        services.AddScoped<IEmailService, EmailService>();
         
         var fileStoragePath = configuration["FileStorage:Path"] ?? Path.Combine(Directory.GetCurrentDirectory(), "FileStorage");
         services.AddSingleton<IFileStorageService>(new FileStorageService(fileStoragePath));

@@ -18,10 +18,12 @@ public class ForgotPasswordCommand : IRequest<ResponseObjectJsonDto>
 public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, ResponseObjectJsonDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IEmailService _emailService;
 
-    public ForgotPasswordCommandHandler(IUserRepository userRepository)
+    public ForgotPasswordCommandHandler(IUserRepository userRepository, IEmailService emailService)
     {
         _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -48,6 +50,8 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
             await _userRepository.UpdateAsync(user);
 
             var resetLink = $"http://localhost:5000/api/Users/reset-password?token={token}";
+
+            await _emailService.SendPasswordResetEmailAsync(user.Email, user.Username, resetLink);
 
             var response = new ForgotPasswordResponseDto
             {

@@ -29,5 +29,10 @@
       <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="EmailTemplates\*.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 
 </Project>
