@@ -67,7 +67,7 @@ PandoraLock provides enterprise-grade security for file management through AES-2
 - [ ] **Authentication System**
   - [x] JWT implementation
   - [x] User registration and login
-  - [ ] Password security and recovery
+  - [x] Password security and recovery
 
 - [ ] **Authorization & Permissions**
   - [ ] Role-based permission layers

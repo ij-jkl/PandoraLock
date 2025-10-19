@@ -1,5 +1,6 @@
 using Application.Files.Commands;
 using Application.Files.Queries;
+using Application.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -89,6 +90,34 @@ public class FilesController : ControllerBase
         var response = await _mediator.Send(query);
         
         return StatusCode(response.Code, response);
+    }
+
+    [HttpGet("{id}/download")]
+    [Authorize]
+    public async Task<IActionResult> DownloadFile(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized(new { Message = "User not authenticated", Code = 401 });
+        }
+
+        var query = new DownloadFileQuery(id, userId);
+        var response = await _mediator.Send(query);
+
+        if (response.Code != 200)
+        {
+            return StatusCode(response.Code, response);
+        }
+
+        var fileData = response.Response as FileDownloadDto;
+
+        if (fileData == null)
+        {
+            return StatusCode(500, new { Message = "Error retrieving file data", Code = 500 });
+        }
+
+        return File(fileData.FileStream, fileData.ContentType, fileData.FileName);
     }
 }
 

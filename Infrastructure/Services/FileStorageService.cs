@@ -42,4 +42,39 @@ public class FileStorageService : IFileStorageService
             await Task.Run(() => File.Delete(filePath));
         }
     }
+
+    public async Task<(Stream fileStream, string contentType, string fileName)?> GetFileAsync(string storagePath)
+    {
+        if (!File.Exists(storagePath))
+        {
+            return null;
+        }
+
+        var fileStream = new FileStream(storagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var fileName = Path.GetFileName(storagePath);
+        var contentType = GetContentType(fileName);
+
+        return await Task.FromResult((fileStream, contentType, fileName));
+    }
+
+    private string GetContentType(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".txt" => "text/plain",
+            ".pdf" => "application/pdf",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xls" => "application/vnd.ms-excel",
+            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".png" => "image/png",
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".zip" => "application/zip",
+            ".rar" => "application/x-rar-compressed",
+            _ => "application/octet-stream"
+        };
+    }
 }
