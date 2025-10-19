@@ -28,7 +28,7 @@ public class GetAllFilesQueryHandler : IRequestHandler<GetAllFilesQuery, Respons
     {
         try
         {
-            var files = await _fileRepository.GetAccessibleFilesAsync(request.UserId);
+            var files = await _fileRepository.GetAllByUserIdAsync(request.UserId);
 
             var fileDtos = files.Select(f => new FileDto
             {

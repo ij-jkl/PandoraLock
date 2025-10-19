@@ -35,6 +35,12 @@ public class SharedFileAccessRepository : ISharedFileAccessRepository
         return sharedFileAccess;
     }
 
+    public async Task UpdateAsync(SharedFileAccessEntity sharedFileAccess)
+    {
+        _context.SharedFileAccess.Update(sharedFileAccess);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task DeleteAsync(SharedFileAccessEntity sharedFileAccess)
     {
         _context.SharedFileAccess.Remove(sharedFileAccess);

@@ -11,12 +11,14 @@ public class ShareFileCommand : IRequest<ResponseObjectJsonDto>
     public int FileId { get; set; }
     public string SharedWithEmail { get; set; } = default!;
     public int OwnerId { get; set; }
+    public int ExpirationHours { get; set; } = 0;
 
-    public ShareFileCommand(int fileId, string sharedWithEmail, int ownerId)
+    public ShareFileCommand(int fileId, string sharedWithEmail, int ownerId, int expirationHours = 0)
     {
         FileId = fileId;
         SharedWithEmail = sharedWithEmail;
         OwnerId = ownerId;
+        ExpirationHours = expirationHours;
     }
 }
 
@@ -25,19 +27,31 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
     private readonly IFileRepository _fileRepository;
     private readonly IUserRepository _userRepository;
     private readonly ISharedFileAccessRepository _sharedFileAccessRepository;
+    private readonly IDateTimeService _dateTimeService;
 
     public ShareFileCommandHandler(IFileRepository fileRepository,IUserRepository userRepository,
-        ISharedFileAccessRepository sharedFileAccessRepository)
+        ISharedFileAccessRepository sharedFileAccessRepository, IDateTimeService dateTimeService)
     {
         _fileRepository = fileRepository;
         _userRepository = userRepository;
         _sharedFileAccessRepository = sharedFileAccessRepository;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(ShareFileCommand request, CancellationToken cancellationToken)
     {
         try
         {
+            if (request.ExpirationHours < 0 || request.ExpirationHours > 720)
+            {
+                return new ResponseObjectJsonDto
+                {
+                    Message = "Expiration hours must be between 0 (forever) and 720 (30 days)",
+                    Code = 400,
+                    Response = null
+                };
+            }
+
             var file = await _fileRepository.GetByIdAsync(request.FileId);
 
             if (file == null)
@@ -107,7 +121,8 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
             var sharedAccess = new SharedFileAccessEntity
             {
                 FileId = request.FileId,
-                SharedWithUserId = userToShareWith.Id
+                SharedWithUserId = userToShareWith.Id,
+                ExpiresAt = request.ExpirationHours > 0 ? _dateTimeService.Now.AddHours(request.ExpirationHours) : null
             };
 
             var created = await _sharedFileAccessRepository.CreateAsync(sharedAccess);
@@ -117,7 +132,9 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
                 Id = created.Id,
                 FileId = created.FileId,
                 SharedWithUserEmail = userToShareWith.Email,
-                SharedAt = created.SharedAt
+                SharedAt = created.SharedAt,
+                ExpiresAt = created.ExpiresAt,
+                DownloadCount = created.DownloadCount
             };
 
             return new ResponseObjectJsonDto

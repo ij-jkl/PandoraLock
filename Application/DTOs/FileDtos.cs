@@ -17,4 +17,6 @@ public class SharedFileAccessDto
     public int FileId { get; set; }
     public string SharedWithUserEmail { get; set; } = default!;
     public DateTime SharedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public int DownloadCount { get; set; }
 }

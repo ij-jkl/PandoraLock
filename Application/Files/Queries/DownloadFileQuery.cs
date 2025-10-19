@@ -22,15 +22,18 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
     private readonly IFileRepository _fileRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly ISharedFileAccessRepository _sharedFileAccessRepository;
+    private readonly IDateTimeService _dateTimeService;
 
     public DownloadFileQueryHandler(
         IFileRepository fileRepository, 
         IFileStorageService fileStorageService,
-        ISharedFileAccessRepository sharedFileAccessRepository)
+        ISharedFileAccessRepository sharedFileAccessRepository,
+        IDateTimeService dateTimeService)
     {
         _fileRepository = fileRepository;
         _fileStorageService = fileStorageService;
         _sharedFileAccessRepository = sharedFileAccessRepository;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
@@ -51,7 +54,18 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
 
             var isOwner = file.UserId == request.UserId;
             var isPublic = file.IsPublic;
-            var hasSharedAccess = await _sharedFileAccessRepository.GetByFileIdAndUserIdAsync(request.FileId, request.UserId) != null;
+            var sharedAccess = await _sharedFileAccessRepository.GetByFileIdAndUserIdAsync(request.FileId, request.UserId);
+            var hasSharedAccess = sharedAccess != null;
+
+            if (hasSharedAccess && sharedAccess!.ExpiresAt != null && _dateTimeService.Now > sharedAccess.ExpiresAt)
+            {
+                return new ResponseObjectJsonDto
+                {
+                    Message = "Access denied. Share link has expired",
+                    Code = 403,
+                    Response = null
+                };
+            }
 
             if (!isOwner && !isPublic && !hasSharedAccess)
             {
@@ -73,6 +87,12 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
                     Code = 404,
                     Response = null
                 };
+            }
+
+            if (hasSharedAccess && sharedAccess != null)
+            {
+                sharedAccess.DownloadCount++;
+                await _sharedFileAccessRepository.UpdateAsync(sharedAccess);
             }
 
             var downloadDto = new FileDownloadDto
