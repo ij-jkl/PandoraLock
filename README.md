@@ -59,12 +59,12 @@ PandoraLock provides enterprise-grade security for file management through AES-2
 
 ## Development Roadmap
 
-- [ ] **Core Infrastructure**
-  - [ ] File upload, encryption, and retrieval
+- [x] **Core Infrastructure**
+  - [x] File upload, encryption, and retrieval
   - [x] Database schema and migrations
   - [x] Error handling and validation
 
-- [ ] **Authentication System**
+- [x] **Authentication System**
   - [x] JWT implementation
   - [x] User registration and login
   - [x] Password security and recovery
