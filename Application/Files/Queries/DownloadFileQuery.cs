@@ -70,6 +70,16 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
                 };
             }
 
+            if (hasSharedAccess && sharedAccess!.MaxDownloads.HasValue && sharedAccess.DownloadCount >= sharedAccess.MaxDownloads.Value)
+            {
+                return new ResponseObjectJsonDto
+                {
+                    Message = $"Access denied. Download limit of {sharedAccess.MaxDownloads.Value} has been reached",
+                    Code = 403,
+                    Response = null
+                };
+            }
+
             if (!isOwner && !isPublic && !hasSharedAccess)
             {
                 return new ResponseObjectJsonDto

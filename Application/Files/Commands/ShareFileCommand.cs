@@ -12,13 +12,15 @@ public class ShareFileCommand : IRequest<ResponseObjectJsonDto>
     public string SharedWithEmail { get; set; } = default!;
     public int OwnerId { get; set; }
     public int ExpirationHours { get; set; } = 0;
+    public int? MaxDownloads { get; set; }
 
-    public ShareFileCommand(int fileId, string sharedWithEmail, int ownerId, int expirationHours = 0)
+    public ShareFileCommand(int fileId, string sharedWithEmail, int ownerId, int expirationHours = 0, int? maxDownloads = null)
     {
         FileId = fileId;
         SharedWithEmail = sharedWithEmail;
         OwnerId = ownerId;
         ExpirationHours = expirationHours;
+        MaxDownloads = maxDownloads;
     }
 }
 
@@ -47,6 +49,16 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
                 return new ResponseObjectJsonDto
                 {
                     Message = "Expiration hours must be between 0 (forever) and 720 (30 days)",
+                    Code = 400,
+                    Response = null
+                };
+            }
+
+            if (request.MaxDownloads.HasValue && request.MaxDownloads.Value <= 0)
+            {
+                return new ResponseObjectJsonDto
+                {
+                    Message = "Max downloads must be greater than 0",
                     Code = 400,
                     Response = null
                 };
@@ -122,7 +134,8 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
             {
                 FileId = request.FileId,
                 SharedWithUserId = userToShareWith.Id,
-                ExpiresAt = request.ExpirationHours > 0 ? _dateTimeService.Now.AddHours(request.ExpirationHours) : null
+                ExpiresAt = request.ExpirationHours > 0 ? _dateTimeService.Now.AddHours(request.ExpirationHours) : null,
+                MaxDownloads = request.MaxDownloads
             };
 
             var created = await _sharedFileAccessRepository.CreateAsync(sharedAccess);
@@ -134,7 +147,8 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
                 SharedWithUserEmail = userToShareWith.Email,
                 SharedAt = created.SharedAt,
                 ExpiresAt = created.ExpiresAt,
-                DownloadCount = created.DownloadCount
+                DownloadCount = created.DownloadCount,
+                MaxDownloads = created.MaxDownloads
             };
 
             return new ResponseObjectJsonDto

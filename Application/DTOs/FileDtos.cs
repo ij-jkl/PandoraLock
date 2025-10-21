@@ -19,4 +19,5 @@ public class SharedFileAccessDto
     public DateTime SharedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public int DownloadCount { get; set; }
+    public int? MaxDownloads { get; set; }
 }

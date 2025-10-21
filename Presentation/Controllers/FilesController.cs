@@ -46,7 +46,7 @@ public class FilesController : ControllerBase
             return Unauthorized(new { Message = "User not authenticated", Code = 401 });
         }
 
-        var command = new ShareFileCommand(fileId, request.SharedWithEmail, userId, request.ExpirationHours ?? 0);
+        var command = new ShareFileCommand(fileId, request.SharedWithEmail, userId, request.ExpirationHours ?? 0, request.MaxDownloads);
         var response = await _mediator.Send(command);
         
         return StatusCode(response.Code, response);
@@ -125,4 +125,5 @@ public class ShareFileRequest
 {
     public string SharedWithEmail { get; set; } = default!;
     public int? ExpirationHours { get; set; }
+    public int? MaxDownloads { get; set; }
 }

@@ -12,4 +12,5 @@ public class SharedFileAccessEntity
     public DateTime SharedAt { get; set; } = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ArgentinaTimeZone);
     public DateTime? ExpiresAt { get; set; }
     public int DownloadCount { get; set; } = 0;
+    public int? MaxDownloads { get; set; }
 }
