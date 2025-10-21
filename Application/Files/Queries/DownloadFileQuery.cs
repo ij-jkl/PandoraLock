@@ -23,17 +23,20 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
     private readonly IFileStorageService _fileStorageService;
     private readonly ISharedFileAccessRepository _sharedFileAccessRepository;
     private readonly IDateTimeService _dateTimeService;
+    private readonly ICacheService _cacheService;
 
     public DownloadFileQueryHandler(
         IFileRepository fileRepository, 
         IFileStorageService fileStorageService,
         ISharedFileAccessRepository sharedFileAccessRepository,
-        IDateTimeService dateTimeService)
+        IDateTimeService dateTimeService,
+        ICacheService cacheService)
     {
         _fileRepository = fileRepository;
         _fileStorageService = fileStorageService;
         _sharedFileAccessRepository = sharedFileAccessRepository;
         _dateTimeService = dateTimeService;
+        _cacheService = cacheService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
@@ -77,16 +80,65 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
                 };
             }
 
-            var fileData = await _fileStorageService.GetFileAsync(file.StoragePath);
+            Stream? fileStream = null;
+            byte[]? fileBytes = null;
 
-            if (fileData == null)
+            if (isPublic)
             {
-                return new ResponseObjectJsonDto
+                var cacheKey = $"file:{request.FileId}";
+                var cachedFile = await _cacheService.GetAsync<CachedFileDto>(cacheKey, cancellationToken);
+
+                if (cachedFile != null)
                 {
-                    Message = "File content not found in storage",
-                    Code = 404,
-                    Response = null
-                };
+                    fileStream = new MemoryStream(cachedFile.FileContent);
+                }
+                else
+                {
+                    var fileData = await _fileStorageService.GetFileAsync(file.StoragePath);
+
+                    if (fileData == null)
+                    {
+                        return new ResponseObjectJsonDto
+                        {
+                            Message = "File content not found in storage",
+                            Code = 404,
+                            Response = null
+                        };
+                    }
+
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await fileData.Value.fileStream.CopyToAsync(memoryStream, cancellationToken);
+                        fileBytes = memoryStream.ToArray();
+                    }
+
+                    var cachedFileDto = new CachedFileDto
+                    {
+                        FileContent = fileBytes,
+                        ContentType = file.ContentType,
+                        FileName = file.Name
+                    };
+
+                    await _cacheService.SetAsync(cacheKey, cachedFileDto, null, cancellationToken);
+
+                    fileStream = new MemoryStream(fileBytes);
+                }
+            }
+            else
+            {
+                var fileData = await _fileStorageService.GetFileAsync(file.StoragePath);
+
+                if (fileData == null)
+                {
+                    return new ResponseObjectJsonDto
+                    {
+                        Message = "File content not found in storage",
+                        Code = 404,
+                        Response = null
+                    };
+                }
+
+                fileStream = fileData.Value.fileStream;
             }
 
             if (hasSharedAccess && sharedAccess != null)
@@ -97,7 +149,7 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
 
             var downloadDto = new FileDownloadDto
             {
-                FileStream = fileData.Value.fileStream,
+                FileStream = fileStream,
                 ContentType = file.ContentType,
                 FileName = file.Name
             };

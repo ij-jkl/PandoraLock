@@ -25,11 +25,19 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
 {
     private readonly IFileRepository _fileRepository;
     private readonly IFileStorageService _fileStorageService;
+    private readonly ICacheService _cacheService;
+    private readonly IDateTimeService _dateTimeService;
 
-    public UploadFileCommandHandler(IFileRepository fileRepository, IFileStorageService fileStorageService)
+    public UploadFileCommandHandler(
+        IFileRepository fileRepository, 
+        IFileStorageService fileStorageService,
+        ICacheService cacheService,
+        IDateTimeService dateTimeService)
     {
         _fileRepository = fileRepository;
         _fileStorageService = fileStorageService;
+        _cacheService = cacheService;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(UploadFileCommand request, CancellationToken cancellationToken)
@@ -42,6 +50,12 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
             {
                 await _fileStorageService.DeleteFileAsync(existingFile.StoragePath);
 
+                if (existingFile.IsPublic)
+                {
+                    var cacheKey = $"file:{existingFile.Id}";
+                    await _cacheService.RemoveAsync(cacheKey, cancellationToken);
+                }
+
                 using (var stream = request.File.OpenReadStream())
                 {
                     var storagePath = await _fileStorageService.SaveFileAsync(stream, request.File.FileName, request.UserId);
@@ -50,7 +64,7 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                     existingFile.SizeInBytes = request.File.Length;
                     existingFile.ContentType = request.File.ContentType;
                     existingFile.IsPublic = request.IsPublic;
-                    existingFile.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
+                    existingFile.UpdatedAt = _dateTimeService.Now;
 
                     var updatedFile = await _fileRepository.UpdateAsync(existingFile);
 

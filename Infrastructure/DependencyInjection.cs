@@ -3,6 +3,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 
 namespace Infrastructure;
 
@@ -21,6 +22,17 @@ public static class DependencyInjection
         
         var fileStoragePath = configuration["FileStorage:Path"] ?? Path.Combine(Directory.GetCurrentDirectory(), "FileStorage");
         services.AddSingleton<IFileStorageService>(new FileStorageService(fileStoragePath));
+
+        var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") 
+            ?? throw new InvalidOperationException("REDIS_CONNECTION_STRING environment variable is not set");
+        var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);
+        services.AddSingleton<IConnectionMultiplexer>(redisConnection);
+        
+        var cacheExpirationMinutesStr = Environment.GetEnvironmentVariable("REDIS_CACHE_EXPIRATION_MINUTES") 
+            ?? throw new InvalidOperationException("REDIS_CACHE_EXPIRATION_MINUTES environment variable is not set");
+        var cacheExpirationMinutes = int.Parse(cacheExpirationMinutesStr);
+        services.AddSingleton<ICacheService>(sp => 
+            new CacheService(redisConnection, TimeSpan.FromMinutes(cacheExpirationMinutes)));
         
         return services;
     }
