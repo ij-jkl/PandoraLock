@@ -1,0 +1,77 @@
+name: CI Pipeline - Pandora
+
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore solution.sln
+
+    - name: Build solution
+      run: dotnet build solution.sln --configuration Release --no-restore
+
+    - name: Run unit tests
+      env:
+        MYSQL_CONNECTION_STRING: server=localhost;port=3306;database=${{ secrets.MYSQL_DATABASE }};uid=${{ secrets.MYSQL_USER }};pwd=${{ secrets.MYSQL_PASSWORD }}
+        REDIS_CONNECTION_STRING: ${{ secrets.REDIS_CONNECTION_STRING }}
+        REDIS_CACHE_EXPIRATION_MINUTES: ${{ secrets.REDIS_CACHE_EXPIRATION_MINUTES }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+        JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+        JWT_ACCESS_TOKEN_LIFETIME_MINUTES: ${{ secrets.JWT_ACCESS_TOKEN_LIFETIME_MINUTES }}
+        FILE_STORAGE_PATH: ${{ secrets.FILE_STORAGE_PATH }}
+        MAX_FILE_SIZE_MB: ${{ secrets.MAX_FILE_SIZE_MB }}
+        FILE_ENCRYPTION_KEY: ${{ secrets.FILE_ENCRYPTION_KEY }}
+        EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+        EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+        EMAIL_SMTP_USERNAME: ${{ secrets.EMAIL_SMTP_USERNAME }}
+        EMAIL_SMTP_PASSWORD: ${{ secrets.EMAIL_SMTP_PASSWORD }}
+        EMAIL_FROM_EMAIL: ${{ secrets.EMAIL_FROM_EMAIL }}
+        EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
+        EMAIL_ENABLE_SSL: ${{ secrets.EMAIL_ENABLE_SSL }}
+      run: dotnet test UnitTest/UnitTest.csproj --configuration Release --no-build --verbosity normal
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: '**/TestResults/**'
