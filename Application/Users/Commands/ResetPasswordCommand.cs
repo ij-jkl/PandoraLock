@@ -21,10 +21,12 @@ public class ResetPasswordCommand : IRequest<ResponseObjectJsonDto>
 public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, ResponseObjectJsonDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IAuditLogger _auditLogger;
 
-    public ResetPasswordCommandHandler(IUserRepository userRepository)
+    public ResetPasswordCommandHandler(IUserRepository userRepository, IAuditLogger auditLogger)
     {
         _userRepository = userRepository;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
@@ -70,6 +72,15 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
             user.IsLocked = false;
 
             await _userRepository.UpdateAsync(user);
+
+            await _auditLogger.LogActionAsync(
+                action: "PasswordReset",
+                entityName: "User",
+                entityId: user.Id.ToString(),
+                userId: user.Id,
+                username: user.Username,
+                additionalInfo: "Password reset completed"
+            );
 
             return new ResponseObjectJsonDto
             {

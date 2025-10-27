@@ -27,17 +27,20 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
     private readonly IFileStorageService _fileStorageService;
     private readonly ICacheService _cacheService;
     private readonly IDateTimeService _dateTimeService;
+    private readonly IAuditLogger _auditLogger;
 
     public UploadFileCommandHandler(
         IFileRepository fileRepository, 
         IFileStorageService fileStorageService,
         ICacheService cacheService,
-        IDateTimeService dateTimeService)
+        IDateTimeService dateTimeService,
+        IAuditLogger auditLogger)
     {
         _fileRepository = fileRepository;
         _fileStorageService = fileStorageService;
         _cacheService = cacheService;
         _dateTimeService = dateTimeService;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(UploadFileCommand request, CancellationToken cancellationToken)
@@ -60,6 +63,8 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                 {
                     var storagePath = await _fileStorageService.SaveFileAsync(stream, request.File.FileName, request.UserId);
                     
+                    var beforeValue = new { existingFile.Id, existingFile.Name, existingFile.SizeInBytes, existingFile.IsPublic, existingFile.UpdatedAt };
+                    
                     existingFile.StoragePath = storagePath;
                     existingFile.SizeInBytes = request.File.Length;
                     existingFile.ContentType = request.File.ContentType;
@@ -67,6 +72,16 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                     existingFile.UpdatedAt = _dateTimeService.Now;
 
                     var updatedFile = await _fileRepository.UpdateAsync(existingFile);
+
+                    await _auditLogger.LogUpdateAsync(
+                        entityName: "File",
+                        entityId: updatedFile.Id.ToString(),
+                        userId: request.UserId,
+                        username: null,
+                        beforeValue: beforeValue,
+                        afterValue: new { updatedFile.Id, updatedFile.Name, updatedFile.SizeInBytes, updatedFile.IsPublic, updatedFile.UpdatedAt },
+                        additionalInfo: "File replaced with new version"
+                    );
 
                     var fileDto = new FileDto
                     {
@@ -104,6 +119,15 @@ public class UploadFileCommandHandler : IRequestHandler<UploadFileCommand, Respo
                     };
 
                     var createdFile = await _fileRepository.CreateAsync(fileEntity);
+
+                    await _auditLogger.LogCreateAsync(
+                        entityName: "File",
+                        entityId: createdFile.Id.ToString(),
+                        userId: request.UserId,
+                        username: null,
+                        createdValue: new { createdFile.Id, createdFile.Name, createdFile.SizeInBytes, createdFile.IsPublic, createdFile.UploadedAt },
+                        additionalInfo: "New file uploaded"
+                    );
 
                     var fileDto = new FileDto
                     {

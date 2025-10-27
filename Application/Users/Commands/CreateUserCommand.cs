@@ -20,11 +20,15 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Respo
 {
     private readonly IUserRepository _userRepository;
     private readonly IEmailService _emailService;
+    private readonly IAuditLogger _auditLogger;
+    private readonly IDateTimeService _dateTimeService;
 
-    public CreateUserCommandHandler(IUserRepository userRepository, IEmailService emailService)
+    public CreateUserCommandHandler(IUserRepository userRepository, IEmailService emailService, IAuditLogger auditLogger, IDateTimeService dateTimeService)
     {
         _userRepository = userRepository;
         _emailService = emailService;
+        _auditLogger = auditLogger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -61,10 +65,19 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Respo
                 Email = request.UserData.Email,
                 Username = request.UserData.Username,
                 PasswordHash = passwordHash,
-                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"))
+                CreatedAt = _dateTimeService.Now
             };
 
             var createdUser = await _userRepository.CreateAsync(user);
+
+            await _auditLogger.LogCreateAsync(
+                entityName: "User",
+                entityId: createdUser.Id.ToString(),
+                userId: createdUser.Id,
+                username: createdUser.Username,
+                createdValue: new { createdUser.Id, createdUser.Username, createdUser.Email, createdUser.CreatedAt },
+                additionalInfo: "User registered"
+            );
 
             await _emailService.SendUserCreatedEmailAsync(createdUser.Email, createdUser.Username);
 

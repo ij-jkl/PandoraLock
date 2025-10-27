@@ -30,14 +30,16 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
     private readonly IUserRepository _userRepository;
     private readonly ISharedFileAccessRepository _sharedFileAccessRepository;
     private readonly IDateTimeService _dateTimeService;
+    private readonly IAuditLogger _auditLogger;
 
     public ShareFileCommandHandler(IFileRepository fileRepository,IUserRepository userRepository,
-        ISharedFileAccessRepository sharedFileAccessRepository, IDateTimeService dateTimeService)
+        ISharedFileAccessRepository sharedFileAccessRepository, IDateTimeService dateTimeService, IAuditLogger auditLogger)
     {
         _fileRepository = fileRepository;
         _userRepository = userRepository;
         _sharedFileAccessRepository = sharedFileAccessRepository;
         _dateTimeService = dateTimeService;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(ShareFileCommand request, CancellationToken cancellationToken)
@@ -139,6 +141,15 @@ public class ShareFileCommandHandler : IRequestHandler<ShareFileCommand, Respons
             };
 
             var created = await _sharedFileAccessRepository.CreateAsync(sharedAccess);
+
+            await _auditLogger.LogCreateAsync(
+                entityName: "SharedFileAccess",
+                entityId: created.Id.ToString(),
+                userId: request.OwnerId,
+                username: null,
+                createdValue: new { created.Id, created.FileId, SharedWithUserId = userToShareWith.Id, SharedWithEmail = userToShareWith.Email, created.SharedAt, created.ExpiresAt, created.MaxDownloads },
+                additionalInfo: $"File {file.Name} shared with {userToShareWith.Email}"
+            );
 
             var sharedAccessDto = new SharedFileAccessDto
             {

@@ -21,11 +21,15 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
+    private readonly IAuditLogger _auditLogger;
+    private readonly IDateTimeService _dateTimeService;
 
-    public LoginUserCommandHandler(IUserRepository userRepository, ITokenService tokenService)
+    public LoginUserCommandHandler(IUserRepository userRepository, ITokenService tokenService, IAuditLogger auditLogger, IDateTimeService dateTimeService)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;
+        _auditLogger = auditLogger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -47,6 +51,15 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
             // Check if account is already locked - reject immediately
             if (user.IsLocked)
             {
+                await _auditLogger.LogActionAsync(
+                    action: "LoginAttempt",
+                    entityName: "User",
+                    entityId: user.Id.ToString(),
+                    userId: user.Id,
+                    username: user.Username,
+                    additionalInfo: "Login attempt on locked account"
+                );
+
                 return new ResponseObjectJsonDto
                 {
                     Message = "Account is locked due to too many failed login attempts",
@@ -66,6 +79,15 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
                     user.IsLocked = true;
                     await _userRepository.UpdateAsync(user);
 
+                    await _auditLogger.LogActionAsync(
+                        action: "AccountLocked",
+                        entityName: "User",
+                        entityId: user.Id.ToString(),
+                        userId: user.Id,
+                        username: user.Username,
+                        additionalInfo: "Account locked after 5 failed login attempts"
+                    );
+
                     return new ResponseObjectJsonDto
                     {
                         Message = "Invalid username/email or password. Account has been locked after 5 failed attempts",
@@ -75,6 +97,15 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
                 }
 
                 await _userRepository.UpdateAsync(user);
+
+                await _auditLogger.LogActionAsync(
+                    action: "FailedLogin",
+                    entityName: "User",
+                    entityId: user.Id.ToString(),
+                    userId: user.Id,
+                    username: user.Username,
+                    additionalInfo: $"Failed login attempt {user.FailedLoginAttempts}/5"
+                );
 
                 return new ResponseObjectJsonDto
                 {
@@ -86,8 +117,17 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, Respons
 
             // If user login is successful, reset failed attempts and update last login time
             user.FailedLoginAttempts = 0;
-            user.LastLoginAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time"));
+            user.LastLoginAt = _dateTimeService.Now;
             await _userRepository.UpdateAsync(user);
+
+            await _auditLogger.LogActionAsync(
+                action: "Login",
+                entityName: "User",
+                entityId: user.Id.ToString(),
+                userId: user.Id,
+                username: user.Username,
+                additionalInfo: "Successful login"
+            );
 
             var token = _tokenService.CreateAccessToken(user);
             

@@ -1,12 +1,21 @@
 using Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using System.IO;
 
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        EnvLoader.LoadRootEnv();
+        try
+        {
+            EnvLoader.LoadRootEnv();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[WARN] Failed to load .env: {ex.Message}");
+            Console.WriteLine("[WARN] Falling back to system environment variables");
+        }
 
         var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING");
         Console.WriteLine($"[DEBUG] - MYSQL_CONNECTION_STRING being used : {connectionString}");

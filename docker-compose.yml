@@ -71,7 +71,7 @@ services:
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
       EMAIL_ENABLE_SSL: ${EMAIL_ENABLE_SSL}
     ports:
-      - "8080:8080"
+      - "8090:8080"
     volumes:
       - file_storage:/app/FileStorage
     depends_on:

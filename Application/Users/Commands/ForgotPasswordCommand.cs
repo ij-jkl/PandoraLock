@@ -19,11 +19,13 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
 {
     private readonly IUserRepository _userRepository;
     private readonly IEmailService _emailService;
+    private readonly IAuditLogger _auditLogger;
 
-    public ForgotPasswordCommandHandler(IUserRepository userRepository, IEmailService emailService)
+    public ForgotPasswordCommandHandler(IUserRepository userRepository, IEmailService emailService, IAuditLogger auditLogger)
     {
         _userRepository = userRepository;
         _emailService = emailService;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -48,6 +50,15 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
             user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
 
             await _userRepository.UpdateAsync(user);
+
+            await _auditLogger.LogActionAsync(
+                action: "PasswordResetRequested",
+                entityName: "User",
+                entityId: user.Id.ToString(),
+                userId: user.Id,
+                username: user.Username,
+                additionalInfo: "Password reset token generated"
+            );
 
             var resetLink = $"http://localhost:5000/api/Users/reset-password?token={token}";
 

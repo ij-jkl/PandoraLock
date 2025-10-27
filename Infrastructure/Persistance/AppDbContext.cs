@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<UserEntity> Users { get; set; } = default!;
     public DbSet<FileEntity> Files { get; set; } = default!;
     public DbSet<SharedFileAccessEntity> SharedFileAccess { get; set; } = default!;
+    public DbSet<AuditLogEntity> AuditLogs { get; set; } = default!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,15 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<SharedFileAccessEntity>()
             .HasIndex(s => new { s.FileId, s.SharedWithUserId })
             .IsUnique();
+
+        modelBuilder.Entity<AuditLogEntity>()
+            .HasIndex(a => a.Timestamp);
+
+        modelBuilder.Entity<AuditLogEntity>()
+            .HasIndex(a => a.UserId);
+
+        modelBuilder.Entity<AuditLogEntity>()
+            .HasIndex(a => new { a.EntityName, a.EntityId });
     }
 }
 

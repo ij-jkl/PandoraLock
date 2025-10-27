@@ -24,19 +24,22 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
     private readonly ISharedFileAccessRepository _sharedFileAccessRepository;
     private readonly IDateTimeService _dateTimeService;
     private readonly ICacheService _cacheService;
+    private readonly IAuditLogger _auditLogger;
 
     public DownloadFileQueryHandler(
         IFileRepository fileRepository, 
         IFileStorageService fileStorageService,
         ISharedFileAccessRepository sharedFileAccessRepository,
         IDateTimeService dateTimeService,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        IAuditLogger auditLogger)
     {
         _fileRepository = fileRepository;
         _fileStorageService = fileStorageService;
         _sharedFileAccessRepository = sharedFileAccessRepository;
         _dateTimeService = dateTimeService;
         _cacheService = cacheService;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ResponseObjectJsonDto> Handle(DownloadFileQuery request, CancellationToken cancellationToken)
@@ -156,6 +159,15 @@ public class DownloadFileQueryHandler : IRequestHandler<DownloadFileQuery, Respo
                 sharedAccess.DownloadCount++;
                 await _sharedFileAccessRepository.UpdateAsync(sharedAccess);
             }
+
+            await _auditLogger.LogActionAsync(
+                action: "FileDownload",
+                entityName: "File",
+                entityId: file.Id.ToString(),
+                userId: request.UserId,
+                username: null,
+                additionalInfo: $"File {file.Name} downloaded by user {request.UserId}"
+            );
 
             var downloadDto = new FileDownloadDto
             {
