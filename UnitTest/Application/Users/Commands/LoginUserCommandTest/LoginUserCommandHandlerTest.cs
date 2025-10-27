@@ -16,6 +16,8 @@ public class LoginUserCommandHandlerTest
 {
     private Mock<IUserRepository> _userRepositoryMock;
     private Mock<ITokenService> _tokenServiceMock;
+    private Mock<IAuditLogger> _auditLoggerMock;
+    private Mock<IDateTimeService> _dateTimeServiceMock;
     private LoginUserCommandHandler _handler;
     private UserEntity _testUser;
     private readonly TimeZoneInfo _argentinaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time");
@@ -25,7 +27,17 @@ public class LoginUserCommandHandlerTest
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _tokenServiceMock = new Mock<ITokenService>();
-        _handler = new LoginUserCommandHandler(_userRepositoryMock.Object, _tokenServiceMock.Object);
+        _auditLoggerMock = new Mock<IAuditLogger>();
+        _dateTimeServiceMock = new Mock<IDateTimeService>();
+        
+        var currentTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _argentinaTimeZone);
+        _dateTimeServiceMock.Setup(x => x.Now).Returns(currentTime);
+        
+        _handler = new LoginUserCommandHandler(
+            _userRepositoryMock.Object, 
+            _tokenServiceMock.Object,
+            _auditLoggerMock.Object,
+            _dateTimeServiceMock.Object);
         
         _testUser = new UserEntity
         {
@@ -169,7 +181,7 @@ public class LoginUserCommandHandlerTest
     {
         var command = new LoginUserCommand("testuser", "ValidPassword123");
         var expectedToken = "valid.jwt.token";
-        var beforeLogin = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _argentinaTimeZone);
+        var expectedLoginTime = _dateTimeServiceMock.Object.Now;
         
         _userRepositoryMock.Setup(x => x.GetByUsernameOrEmailAsync("testuser"))
             .ReturnsAsync(_testUser);
@@ -179,12 +191,10 @@ public class LoginUserCommandHandlerTest
             .ReturnsAsync((UserEntity user) => user);
 
         var result = await _handler.Handle(command, CancellationToken.None);
-        var afterLogin = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _argentinaTimeZone);
 
         _userRepositoryMock.Verify(x => x.UpdateAsync(It.Is<UserEntity>(u => 
             u.LastLoginAt.HasValue && 
-            u.LastLoginAt.Value >= beforeLogin && 
-            u.LastLoginAt.Value <= afterLogin)), Times.Once);
+            u.LastLoginAt.Value == expectedLoginTime)), Times.Once);
     }
 
     [Test]
