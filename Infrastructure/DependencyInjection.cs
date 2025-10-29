@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddSingleton<IFileSafetyAnalyzer, FileSafetyAnalyzer>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddSingleton<IDateTimeService, DateTimeService>();
+        services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
         
         var fileStoragePath = configuration["FileStorage:Path"] ?? Path.Combine(Directory.GetCurrentDirectory(), "FileStorage");
         services.AddSingleton<IFileStorageService>(new FileStorageService(fileStoragePath));

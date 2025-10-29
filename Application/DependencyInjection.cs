@@ -17,6 +17,9 @@ public static class DependencyInjection
         // Fluent validation behavior
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         
+        // Performance monitoring behavior
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(PerformanceMonitoringBehavior<,>));
+        
         return services;
     }
 }

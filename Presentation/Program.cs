@@ -5,6 +5,7 @@ using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Presentation.Middleware;
 
 EnvLoader.LoadRootEnv();
 
@@ -33,6 +34,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -93,6 +97,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
+app.UseMiddleware<PerformanceMiddleware>();
 
 app.UseCors("AllowAngular");
 app.UseAuthentication();

@@ -82,7 +82,7 @@ PandoraLock provides enterprise-grade security for file management through AES-2
 - [ ] **Monitoring & Audit**
   - [x] Comprehensive audit logging system
   - [x] Security event tracking
-  - [ ] Performance monitoring
+  - [x] Performance monitoring
 
 - [x] **Deployment & DevOps**
   - [x] Docker containerization
