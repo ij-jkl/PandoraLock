@@ -1,7 +1,9 @@
 using Application.DTOs;
 using Application.Users.Commands;
 using Application.Users.Queries;
+using Domain.Constants;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
@@ -17,7 +19,14 @@ public class UsersController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Creates a new user account in the system.
+    /// </summary>
+    /// <response code="201">User account created successfully.</response>
+    /// <response code="400">Invalid input data or user already exists.</response>
+    /// <response code="403">Insufficient permissions to create users.</response>
     [HttpPost("/create/user")]
+    [Authorize(Policy = Permissions.Users.Create)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
     {
         var response = await _mediator.Send(new CreateUserCommand(request));
@@ -25,7 +34,14 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Authenticates a user and returns a JWT access token.
+    /// </summary>
+    /// <response code="200">Login successful, returns access token.</response>
+    /// <response code="400">Invalid credentials or input data.</response>
+    /// <response code="401">Authentication failed.</response>
     [HttpPost("/login")]
+    [AllowAnonymous]
     public async Task<IActionResult> LoginUser([FromBody] LoginUserDto request)
     {
         var command = new LoginUserCommand(request.UsernameOrEmail, request.Password);
@@ -34,7 +50,14 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Initiates a password reset process by sending a reset token to the user's email.
+    /// </summary>
+    /// <response code="200">Password reset email sent successfully.</response>
+    /// <response code="400">Invalid email address.</response>
+    /// <response code="404">User not found.</response>
     [HttpPost("/forgot-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
     {
         var command = new ForgotPasswordCommand(request.Email);
@@ -43,7 +66,13 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Resets a user's password using a valid reset token.
+    /// </summary>
+    /// <response code="200">Password reset successfully.</response>
+    /// <response code="400">Invalid token, expired token, or password validation failed.</response>
     [HttpPost("/reset-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
     {
         var command = new ResetPasswordCommand(request.Token, request.NewPassword, request.ConfirmNewPassword);
@@ -52,7 +81,14 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Retrieves a user by their unique identifier.
+    /// </summary>
+    /// <response code="200">Returns the requested user.</response>
+    /// <response code="403">Insufficient permissions to read user data.</response>
+    /// <response code="404">User not found.</response>
     [HttpGet("/get_by_{id:int}")]
+    [Authorize(Policy = Permissions.Users.Read)]
     public async Task<IActionResult> GetUserById(int id)
     {
         var query = new GetUserByIdQuery(id);
@@ -62,7 +98,14 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Retrieves a user by their username.
+    /// </summary>
+    /// <response code="200">Returns the requested user.</response>
+    /// <response code="403">Insufficient permissions to read user data.</response>
+    /// <response code="404">User not found.</response>
     [HttpGet("/get_by_username/{username}")]
+    [Authorize(Policy = Permissions.Users.Read)]
     public async Task<IActionResult> GetUserByUsername(string username)
     {
         var query = new GetUserByUsernameQuery(username);
@@ -72,7 +115,14 @@ public class UsersController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Retrieves a user by their email address.
+    /// </summary>
+    /// <response code="200">Returns the requested user.</response>
+    /// <response code="403">Insufficient permissions to read user data.</response>
+    /// <response code="404">User not found.</response>
     [HttpGet("/get_by_email/{email}")]
+    [Authorize(Policy = Permissions.Users.Read)]
     public async Task<IActionResult> GetUserByEmail(string email)
     {
         var query = new GetUserByEmailQuery(email);

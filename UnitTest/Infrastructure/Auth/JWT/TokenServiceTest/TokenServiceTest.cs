@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System;
+using Application.Common.Interfaces;
+using Moq;
 
 namespace UnitTest.Infrastructure.Auth.JWT.TokenServiceTest;
 
@@ -15,6 +17,7 @@ public class TokenServiceTest
 {
     private TokenService _tokenService;
     private UserEntity _testUser;
+    private Mock<IDateTimeService> _mockDateTimeService;
 
     [SetUp]
     public void Setup()
@@ -24,7 +27,10 @@ public class TokenServiceTest
         Environment.SetEnvironmentVariable("JWT_AUDIENCE", "TestAudience");
         Environment.SetEnvironmentVariable("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "30");
 
-        _tokenService = new TokenService(null!);
+        _mockDateTimeService = new Mock<IDateTimeService>();
+        _mockDateTimeService.Setup(x => x.UtcNow).Returns(DateTime.UtcNow);
+
+        _tokenService = new TokenService(null!, _mockDateTimeService.Object);
         
         _testUser = new UserEntity
         {
@@ -80,7 +86,7 @@ public class TokenServiceTest
         emailClaim.Should().NotBeNull();
         emailClaim!.Value.Should().Be(_testUser.Email);
         
-        var roleClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "role");
+        var roleClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
         roleClaim.Should().NotBeNull();
         roleClaim!.Value.Should().Be(_testUser.Role.ToString());
     }
@@ -95,7 +101,7 @@ public class TokenServiceTest
         var tokenHandler = new JwtSecurityTokenHandler();
         var jsonToken = tokenHandler.ReadJwtToken(token);
         
-        var roleClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "role");
+        var roleClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
         roleClaim.Should().NotBeNull();
         roleClaim!.Value.Should().Be("Admin");
     }
@@ -129,7 +135,9 @@ public class TokenServiceTest
     public async Task ValidateAccessToken_ExpiredToken_WithValidationDisabled_ReturnsClaimsPrincipal()
     {
         Environment.SetEnvironmentVariable("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "0");
-        var expiredTokenService = new TokenService(null!);
+        var mockExpiredDateTime = new Mock<IDateTimeService>();
+        mockExpiredDateTime.Setup(x => x.UtcNow).Returns(DateTime.UtcNow);
+        var expiredTokenService = new TokenService(null!, mockExpiredDateTime.Object);
         var token = expiredTokenService.CreateAccessToken(_testUser);
         
         await Task.Delay(1000);
@@ -144,7 +152,7 @@ public class TokenServiceTest
     {
         Environment.SetEnvironmentVariable("JWT_SECRET", null);
 
-        var exception = Assert.Throws<ArgumentNullException>(() => new TokenService(null!));
+        var exception = Assert.Throws<ArgumentNullException>(() => new TokenService(null!, _mockDateTimeService.Object));
         exception!.Message.Should().Contain("JWT_SECRET");
     }
 
@@ -153,7 +161,7 @@ public class TokenServiceTest
     {
         Environment.SetEnvironmentVariable("JWT_ISSUER", null);
 
-        var exception = Assert.Throws<ArgumentNullException>(() => new TokenService(null!));
+        var exception = Assert.Throws<ArgumentNullException>(() => new TokenService(null!, _mockDateTimeService.Object));
         exception!.Message.Should().Contain("JWT_ISSUER");
     }
 
@@ -162,7 +170,7 @@ public class TokenServiceTest
     {
         Environment.SetEnvironmentVariable("JWT_AUDIENCE", null);
 
-        var exception = Assert.Throws<ArgumentNullException>(() => new TokenService(null!));
+        var exception = Assert.Throws<ArgumentNullException>(() => new TokenService(null!, _mockDateTimeService.Object));
         exception!.Message.Should().Contain("JWT_AUDIENCE");
     }
 
@@ -170,14 +178,17 @@ public class TokenServiceTest
     public void Constructor_InvalidLifetimeMinutes_UsesDefaultValue()
     {
         Environment.SetEnvironmentVariable("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "invalid");
-        var tokenService = new TokenService(null!);
+        var mockDateTime = new Mock<IDateTimeService>();
+        var baseTime = DateTime.UtcNow;
+        mockDateTime.Setup(x => x.UtcNow).Returns(baseTime);
+        var tokenService = new TokenService(null!, mockDateTime.Object);
 
         var token = tokenService.CreateAccessToken(_testUser);
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var jsonToken = tokenHandler.ReadJwtToken(token);
         
-        var expectedExpiry = DateTime.UtcNow.AddMinutes(20);
+        var expectedExpiry = baseTime.AddMinutes(20);
         jsonToken.ValidTo.Should().BeCloseTo(expectedExpiry, TimeSpan.FromMinutes(1));
     }
 }

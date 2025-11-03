@@ -1,6 +1,7 @@
 using Application.Files.Commands;
 using Application.Files.Queries;
 using Application.DTOs;
+using Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ namespace Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class FilesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -19,8 +21,15 @@ public class FilesController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Uploads a new file to the system.
+    /// </summary>
+    /// <response code="201">File uploaded successfully.</response>
+    /// <response code="400">Invalid file or validation failed.</response>
+    /// <response code="401">User not authenticated.</response>
+    /// <response code="403">Insufficient permissions to upload files.</response>
     [HttpPost("upload")]
-    [Authorize]
+    [Authorize(Policy = Permissions.Files.Create)]
     public async Task<IActionResult> UploadFile(IFormFile file, [FromForm] bool isPublic = false)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -35,8 +44,16 @@ public class FilesController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Shares a file with another user via email.
+    /// </summary>
+    /// <response code="200">File shared successfully.</response>
+    /// <response code="400">Invalid input data.</response>
+    /// <response code="401">User not authenticated.</response>
+    /// <response code="403">Insufficient permissions to share files.</response>
+    /// <response code="404">File not found or user cannot share this file.</response>
     [HttpPost("{fileId}/share")]
-    [Authorize]
+    [Authorize(Policy = Permissions.Files.Update)]
     public async Task<IActionResult> ShareFile(int fileId, [FromBody] ShareFileRequest request)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -52,7 +69,14 @@ public class FilesController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Retrieves all files owned by the authenticated user.
+    /// </summary>
+    /// <response code="200">Returns the list of user's files.</response>
+    /// <response code="401">User not authenticated.</response>
+    /// <response code="403">Insufficient permissions to read files.</response>
     [HttpGet]
+    [Authorize(Policy = Permissions.Files.Read)]
     public async Task<IActionResult> GetAllFiles()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -67,7 +91,12 @@ public class FilesController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Retrieves all publicly accessible files.
+    /// </summary>
+    /// <response code="200">Returns the list of public files.</response>
     [HttpGet("public")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetPublicFiles()
     {
         var query = new GetPublicFilesQuery();
@@ -76,8 +105,14 @@ public class FilesController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Retrieves all files that have been shared with the authenticated user.
+    /// </summary>
+    /// <response code="200">Returns the list of shared files.</response>
+    /// <response code="401">User not authenticated.</response>
+    /// <response code="403">Insufficient permissions to read files.</response>
     [HttpGet("shared-with-me")]
-    [Authorize]
+    [Authorize(Policy = Permissions.Files.Read)]
     public async Task<IActionResult> GetSharedWithMeFiles()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -92,8 +127,15 @@ public class FilesController : ControllerBase
         return StatusCode(response.Code, response);
     }
 
+    /// <summary>
+    /// Downloads a file by its identifier.
+    /// </summary>
+    /// <response code="200">Returns the file content.</response>
+    /// <response code="401">User not authenticated.</response>
+    /// <response code="403">Insufficient permissions to download this file.</response>
+    /// <response code="404">File not found.</response>
     [HttpGet("{id}/download")]
-    [Authorize]
+    [Authorize(Policy = Permissions.Files.Read)]
     public async Task<IActionResult> DownloadFile(int id)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

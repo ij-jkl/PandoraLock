@@ -1,3 +1,8 @@
+// NOTE: This controller is included for demonstration purposes to showcase monitoring capabilities.
+// In a production microservice architecture, these health checks and metrics would typically be handled
+// by a dedicated external service, as this application's core responsibility is file management.
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -14,7 +19,13 @@ public class HealthController : ControllerBase
         _healthCheckService = healthCheckService;
     }
 
+    /// <summary>
+    /// Retrieves the current health status of the application and its dependencies.
+    /// </summary>
+    /// <response code="200">Application is healthy.</response>
+    /// <response code="503">Application or one of its dependencies is unhealthy.</response>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetHealth()
     {
         var healthReport = await _healthCheckService.CheckHealthAsync();

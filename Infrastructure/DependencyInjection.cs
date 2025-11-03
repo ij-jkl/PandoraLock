@@ -1,6 +1,8 @@
 using Application.Common.Interfaces;
+using Infrastructure.Auth.Authorization;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
@@ -47,6 +49,9 @@ public static class DependencyInjection
             var redisConnection = sp.GetRequiredService<IConnectionMultiplexer>();
             return new CacheService(redisConnection, TimeSpan.FromMinutes(cacheExpirationMinutes));
         });
+
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         return services;
     }
