@@ -10,6 +10,9 @@
 
 [![Development Status](https://img.shields.io/badge/status-production%20ready-brightgreen)]()
 [![.NET Version](https://img.shields.io/badge/.NET-8.0-512BD4)]()
+[![Redis Version](https://img.shields.io/badge/Redis-7.0-DC382D)]()
+[![MySQL Version](https://img.shields.io/badge/MySQL-8.0-4479A1)]()
+[![Docker](https://img.shields.io/badge/Docker-enabled-2496ED)]()
 
 </div>
 
