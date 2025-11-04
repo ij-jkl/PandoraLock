@@ -25,7 +25,8 @@ public class UserRoleTest
     public void UserRole_EnumValues_AreSequential()
     {
         ((int)UserRole.User).Should().Be(0);
-        ((int)UserRole.Admin).Should().Be(1);
+        ((int)UserRole.Manager).Should().Be(1);
+        ((int)UserRole.Admin).Should().Be(2);
     }
 
     [Test]
