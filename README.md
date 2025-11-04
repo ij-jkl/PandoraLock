@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Pandora Lock Logo](pandora_lock_logo.png)
+![Pandora Lock Logo](assets/images/pandora_lock_logo.png)
 
 **A secure and scalable backend for encrypted file management and sharing**
 
@@ -22,6 +22,8 @@
 
 PandoraLock provides enterprise-grade security for file management through AES-256-GCM encryption, JWT-based authentication, and role-based access control. Users can securely upload, share, and manage files with fine-grained permissions, while maintaining complete visibility through comprehensive audit logging and performance monitoring.
 
+![Welcome to PandoraLock](assets/images/WelcomePandora.png)
+
 ---
 
 ## Features
@@ -39,6 +41,8 @@ PandoraLock provides enterprise-grade security for file management through AES-2
 - **Dynamic policy provider** for scalable authorization
 - **Password reset functionality** with secure token generation
 
+![Password Reset Flow](assets/images/ForgotPassword.png)
+
 ### File Management & Sharing
 - **Secure file upload and download** with encryption at rest
 - **Private file sharing** with email-based access control
@@ -46,11 +50,15 @@ PandoraLock provides enterprise-grade security for file management through AES-2
 - **Configurable expiration** and download limits for shared files
 - **File type validation** and safety analysis
 
+![Public Files Interface](assets/images/PublicFiles.png)
+
 ### Monitoring & Compliance
 - **Comprehensive audit logging** for all user and system actions
 - **Query-based audit retrieval** by entity, user, or date range
 - **Performance metrics tracking** with real-time statistics
 - **Health check endpoints** for system monitoring
+
+![Admin Metrics Dashboard](assets/images/AdminMetrics.png)
 
 ### Performance & Scalability
 - **Redis caching layer** for optimized public file access
@@ -84,7 +92,7 @@ PandoraLock follows **Clean Architecture** principles with clear separation of c
 
 ## Technology Stack
 
-![Pandora Lock Stack](pandora_lock_stack.png)
+![Pandora Lock Stack](assets/images/pandora_lock_stack.png)
 
 ---
 
@@ -212,6 +220,46 @@ dotnet run
 ```
 
 Access the API at `https://localhost:5001/swagger`
+
+---
+
+## API Documentation
+
+PandoraLock provides comprehensive Swagger/OpenAPI documentation for all endpoints:
+
+![Swagger API Documentation - Overview](assets/images/Swagger1.png)
+
+![Swagger API Documentation - Endpoints](assets/images/Swagger2.png)
+
+---
+
+## Database Schema
+
+The application uses MySQL with the following core tables:
+
+### Users Table
+![Users Database Table](assets/images/UsersTable.png)
+
+### Files Table
+![Files Database Table](assets/images/FilesTable.png)
+
+### Shared File Access Table
+![Shared File Access Table](assets/images/SharedFileAccess.png)
+
+### Audit Logs Table
+![Audit Logs Database Table](assets/images/AuditLogsTable.png)
+
+**Example: User-Specific Audit Trail**
+
+![User Audit Logs](assets/images/AuditsUser1.png)
+
+---
+
+## Docker Deployment
+
+PandoraLock is fully containerized for easy deployment:
+
+![Docker Containers Running](assets/images/DockerContainers.png)
 
 ---
 
