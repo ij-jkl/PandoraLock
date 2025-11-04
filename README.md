@@ -22,7 +22,45 @@
 
 PandoraLock provides enterprise-grade security for file management through AES-256-GCM encryption, JWT-based authentication, and role-based access control. Users can securely upload, share, and manage files with fine-grained permissions, while maintaining complete visibility through comprehensive audit logging and performance monitoring.
 
-![Welcome to PandoraLock](assets/images/WelcomePandora.png)
+---
+
+## API Documentation
+
+PandoraLock provides comprehensive Swagger/OpenAPI documentation for all endpoints:
+
+![Swagger API Documentation - Overview](assets/images/Swagger1.png)
+
+![Swagger API Documentation - Endpoints](assets/images/Swagger2.png)
+
+---
+
+## Database Schema
+
+The application uses MySQL with the following core tables:
+
+### Users Table
+![Users Database Table](assets/images/UsersTable.png)
+
+### Files Table
+![Files Database Table](assets/images/FilesTable.png)
+
+### Shared File Access Table
+![Shared File Access Table](assets/images/SharedFileAccess.png)
+
+### Audit Logs Table
+![Audit Logs Database Table](assets/images/AuditLogsTable.png)
+
+**Example: User-Specific Audit Trail**
+
+![User Audit Logs](assets/images/AuditsUser1.png)
+
+---
+
+## Docker Deployment
+
+PandoraLock is fully containerized for easy deployment:
+
+![Docker Containers Running](assets/images/DockerContainers.png)
 
 ---
 
@@ -40,8 +78,6 @@ PandoraLock provides enterprise-grade security for file management through AES-2
 - **Fine-grained permission policies** for resource-level access control
 - **Dynamic policy provider** for scalable authorization
 - **Password reset functionality** with secure token generation
-
-![Password Reset Flow](assets/images/ForgotPassword.png)
 
 ### File Management & Sharing
 - **Secure file upload and download** with encryption at rest
@@ -168,11 +204,7 @@ Copy the example environment file and configure your settings:
 cp .env.example .env
 ```
 
-Edit the `.env` file with your actual credentials and configuration. See the [Environment Variables](#environment-variables) section below for details.
-
-> **⚠️ Important:** Never commit your `.env` file to version control. It contains sensitive credentials.
-
-### Environment Variables
+Edit the `.env` file with your actual credentials and configuration
 
 All required environment variables are defined in `.env.example`. Key variables include:
 
@@ -223,43 +255,13 @@ Access the API at `https://localhost:5001/swagger`
 
 ---
 
-## API Documentation
+## User Experience
 
-PandoraLock provides comprehensive Swagger/OpenAPI documentation for all endpoints:
+### Welcome Interface
+![Welcome to PandoraLock](assets/images/WelcomePandora.png)
 
-![Swagger API Documentation - Overview](assets/images/Swagger1.png)
-
-![Swagger API Documentation - Endpoints](assets/images/Swagger2.png)
-
----
-
-## Database Schema
-
-The application uses MySQL with the following core tables:
-
-### Users Table
-![Users Database Table](assets/images/UsersTable.png)
-
-### Files Table
-![Files Database Table](assets/images/FilesTable.png)
-
-### Shared File Access Table
-![Shared File Access Table](assets/images/SharedFileAccess.png)
-
-### Audit Logs Table
-![Audit Logs Database Table](assets/images/AuditLogsTable.png)
-
-**Example: User-Specific Audit Trail**
-
-![User Audit Logs](assets/images/AuditsUser1.png)
-
----
-
-## Docker Deployment
-
-PandoraLock is fully containerized for easy deployment:
-
-![Docker Containers Running](assets/images/DockerContainers.png)
+### Password Reset Flow
+![Password Reset Flow](assets/images/ForgotPassword.png)
 
 ---
 
@@ -355,7 +357,5 @@ This approach ensures transparency, accountability, and protection against both 
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/isaac-jordan-464563215/)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/ij-jkl)
-
-[Report Bug](https://github.com/ij-jkl/PandoraLock/issues) · [Request Feature](https://github.com/ij-jkl/PandoraLock/issues)
 
 </div>
