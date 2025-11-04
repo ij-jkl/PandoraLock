@@ -231,6 +231,20 @@ All required environment variables are defined in `.env.example`. Key variables 
 - `EMAIL_SMTP_USERNAME`, `EMAIL_SMTP_PASSWORD` - Email credentials
 - `EMAIL_FROM_EMAIL`, `EMAIL_FROM_NAME` - Sender information
 
+---
+
+After running `docker-compose up -d`, change directory to the Infrastructure project and run the following commands to set up the database schema:
+
+```bash
+cd Infrastructure
+
+dotnet ef migrations add InitialMigration
+
+dotnet ef database update
+```
+
+This will create the initial database schema using Entity Framework migrations.
+
 ### Running with Docker
 
 ```bash
