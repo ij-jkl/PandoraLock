@@ -26,7 +26,7 @@ public class UsersController : ControllerBase
     /// <response code="400">Invalid input data or user already exists.</response>
     /// <response code="403">Insufficient permissions to create users.</response>
     [HttpPost("/create/user")]
-    [Authorize(Policy = Permissions.Users.Create)]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
     {
         var response = await _mediator.Send(new CreateUserCommand(request));
