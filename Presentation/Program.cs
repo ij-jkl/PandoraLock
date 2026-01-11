@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Presentation.Middleware;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 EnvLoader.LoadRootEnv();
 
@@ -37,6 +39,33 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.UserAgent.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 100,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.AddPolicy("auth-strict", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? httpContext.Request.Headers.UserAgent.ToString(),
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 10,
+                QueueLimit = 0,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -107,6 +136,7 @@ app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 app.UseMiddleware<PerformanceMiddleware>();
 
 app.UseCors("AllowAngular");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

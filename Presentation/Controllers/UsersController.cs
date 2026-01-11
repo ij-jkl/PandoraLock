@@ -5,6 +5,7 @@ using Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Presentation.Controllers;
 
@@ -27,6 +28,7 @@ public class UsersController : ControllerBase
     /// <response code="403">Insufficient permissions to create users.</response>
     [HttpPost("/create/user")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth-strict")]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
     {
         var response = await _mediator.Send(new CreateUserCommand(request));
@@ -42,6 +44,7 @@ public class UsersController : ControllerBase
     /// <response code="401">Authentication failed.</response>
     [HttpPost("/login")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth-strict")]
     public async Task<IActionResult> LoginUser([FromBody] LoginUserDto request)
     {
         var command = new LoginUserCommand(request.UsernameOrEmail, request.Password);
@@ -58,6 +61,7 @@ public class UsersController : ControllerBase
     /// <response code="404">User not found.</response>
     [HttpPost("/forgot-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth-strict")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
     {
         var command = new ForgotPasswordCommand(request.Email);
@@ -73,6 +77,7 @@ public class UsersController : ControllerBase
     /// <response code="400">Invalid token, expired token, or password validation failed.</response>
     [HttpPost("/reset-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth-strict")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
     {
         var command = new ResetPasswordCommand(request.Token, request.NewPassword, request.ConfirmNewPassword);
